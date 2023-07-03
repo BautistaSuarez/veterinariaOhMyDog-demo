@@ -12,7 +12,6 @@ from pathlib import Path
 import os
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-
 def ver_encontrados(request):
     if request.user.is_authenticated:
         publicaciones = PublicacionPerroEncontrado.objects.exclude(
