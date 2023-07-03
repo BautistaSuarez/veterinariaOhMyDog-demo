@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Turnos{% endblock %}
+{% block content %}
+
+
+
+<div class="container">
+    <div class="d-flex justify-content-between">
+        <h2>LISTADO DE TURNOS PENDIENTES</h2>
+
+<!-- de aca para abajo rompemos -->
+
+        
+        <div>
+            <button class="btn" onclick="mostrarCampos()" id="btnMostrarCampos">Filtrar</button>
+        </div>
+              
+        <div id="camposFecha"  style="display: none;">
+            <div>
+                <label for="fechaInicio">Fecha inicio:</label>
+                <input type="date" class="mb-3" id="fechaInicio" name="fechaInicio">
+            </div>
+            <div>
+                <labe for="fechaFin">Fecha fin:</label>
+                <input type="date" class="mb-3" id="fechaFin" name="fechaFin">
+            </div>
+            <button class="btn" id="btnEnviarFechas">Filtrar</button>
+        </div>
+
+    </div>
+{% csrf_token %}
+
+<script>
+
+    var csrfToken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+
+    function mostrarCampos() {
+        var btnMostrarCampos = document.getElementById("btnMostrarCampos");
+        var camposFecha = document.getElementById("camposFecha");
+        
+        btnMostrarCampos.style.display = "none";
+        camposFecha.style.display = "block";
+      }
+
+    document.getElementById("btnMostrarCampos").addEventListener("click", function() {
+        var camposFecha = document.getElementById("camposFecha");
+        camposFecha.style.display = "block";
+      });
+      
+      document.getElementById("btnEnviarFechas").addEventListener("click", function() {
+        var fechaInicio = document.getElementById("fechaInicio").value;
+        var fechaFin = document.getElementById("fechaFin").value;
+          
+        var form = document.createElement("form");
+        form.method = "POST";
+        form.action = "/turnos/turnos_pendientes/";
+        
+        var csrfInput = document.createElement("input");
+        csrfInput.type = "hidden";
+        csrfInput.name = "csrfmiddlewaretoken";
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        var fechaInicioInput = document.createElement("input");
+        fechaInicioInput.type = "hidden";
+        fechaInicioInput.name = "fechaInicio";
+        fechaInicioInput.value = fechaInicio;
+        form.appendChild(fechaInicioInput);
+        
+        var fechaFinInput = document.createElement("input");
+        fechaFinInput.type = "hidden";
+        fechaFinInput.name = "fechaFin";
+        fechaFinInput.value = fechaFin;
+        form.appendChild(fechaFinInput);
+
+        document.body.appendChild(form);
+        form.submit();
+      });
+</script> 
+
+
+<!-- de aca para arriba rompemos -->
+
+    <table class="table">
+        <tbody>
+            {% if page_obj %}
+                <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Turno</th>
+                    <th>Mail cliente</th>
+                    <th>Descripcion</th>
+                    <th></th>
+                </tr>
+                </thead>
+        
+                {% for Turno in page_obj %}
+                {% csrf_token %}
+                <tr>
+                    <td>{{ Turno.Fecha }}</td>
+                    {% if Turno.Franja_Horaria == "M" %}
+                        <td> Mañana </td>
+                    {% else %}
+                        <td> Tarde </td>
+                    {% endif %}
+                    <td>{{ Turno.id_usuario }}</td>
+                    <td>{{ Turno.Descripcion }}</td>
+                    <td><a class="btn" href="{% url 'turnos:aceptar_turno' Turno.id %}">Aceptar</a></td>
+                    <td><a class="btn" href="{% url 'turnos:rechazar_turno' Turno.id %}">Rechazar</a></td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="4">No hay solicitudes de turnos pendientes</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    {% if mostrar %}
+    <div class="pagination mb-4">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; Primera</a>
+            <a href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+            {% endif %}
+
+            <span class="current-page">{{ page_obj.number }}</span>
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">Última &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
